@@ -10,11 +10,14 @@ from typing import Any, Dict
 
 import psutil
 
+from monitor_service.utils import load_config
+
 
 class MetricCollector:
     """
     Simple system metrics collector for Linux.
     Provides methods to collect CPU, memory, and disk metrics.
+    Uses config.yaml for interval and (future) thresholds.
     """
 
     def collect_cpu_metrics(self) -> Dict[str, Any]:
@@ -66,18 +69,22 @@ class MetricCollector:
                 continue
         return disk_metrics
 
-    def monitor_periodically(self, interval: int = 5) -> None:
+    def monitor_periodically(self, interval: int = None) -> None:
         """
         Periodically collect and print system metrics every `interval` seconds.
         Press Ctrl+C to stop.
+        Interval is loaded from config.yaml if not provided.
         """
+        config = load_config()
+        if interval is None:
+            interval = config.get("metrics", {}).get("interval", 5)
         print(f"Metrics collection every {interval} seconds. Press Ctrl+C to stop.")
         try:
             while True:
                 cpu = self.collect_cpu_metrics()
                 memory = self.collect_memory_metrics()
                 disk = self.collect_disk_metrics()
-                print(f"\n--- System Metrics Monitoring - every {interval} seconds ---")
+                print("\n--- System Metrics ---")
                 print("CPU:", cpu)
                 print("Memory:", memory)
                 print("Disk:", disk)

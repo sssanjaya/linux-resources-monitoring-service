@@ -1,0 +1,11 @@
+metrics:
+  interval: 5  # seconds
+
+cloud:
+  endpoint: "https://your-cloud-endpoint.com/api/metrics"
+  api_key: "YOUR_API_KEY"
+
+alerting:
+  cpu_threshold: 90      # percent
+  memory_threshold: 80   # percent
+  disk_threshold: 80     # percent
