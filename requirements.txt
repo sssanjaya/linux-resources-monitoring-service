@@ -1,0 +1,15 @@
+black>=24.3.0
+commitizen>=3.13.0
+flake8>=7.0.0
+isort>=5.13.0
+
+# Code quality and pre-commit tools
+pre-commit>=3.6.0
+# Core dependencies for metric collection
+psutil>=5.9.0
+
+# Testing and development dependencies
+pytest>=7.0.0
+pytest-cov>=4.0.0
+
+pyyaml
