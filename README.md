@@ -257,14 +257,17 @@ curl http://localhost:8080/metrics
 
 ### Running as a systemd Service (Production)
 
-1. Copy `deploy/sre_monitor.service` to `/etc/systemd/system/sre_monitor.service`.
-2. Edit the `User`, `WorkingDirectory`, and `ExecStart` fields as needed.
+1. Copy `deployment/monitor.service` to `/etc/systemd/system/monitor.service`:
+   ```bash
+   sudo cp deployment/monitor.service /etc/systemd/system/monitor.service
+   ```
+2. Edit the `User`, `WorkingDirectory`, and `ExecStart` fields in the service file to match your environment.
 3. Reload systemd and start the service:
    ```bash
    sudo systemctl daemon-reload
-   sudo systemctl enable sre_monitor
-   sudo systemctl start sre_monitor
-   sudo systemctl status sre_monitor
+   sudo systemctl enable monitor
+   sudo systemctl start monitor
+   sudo systemctl status monitor
    ```
 
 ### Running with Docker (Local Development & Testing)
