@@ -16,13 +16,8 @@ class MetricCollector:
         """Collect basic CPU metrics."""
         return {
             "cpu_usage": psutil.cpu_percent(interval=1),
-            "cpu_count": psutil.cpu_count(logical=False),
+            "cpu_count": psutil.cpu_count(logical=True),
             "per_core_usage": psutil.cpu_percent(interval=1, percpu=True),
-            "frequency": {
-                "current": psutil.cpu_freq().current,
-                "min": psutil.cpu_freq().min,
-                "max": psutil.cpu_freq().max,
-            },
         }
 
     def collect_memory_metrics(self) -> Dict[str, Any]:
