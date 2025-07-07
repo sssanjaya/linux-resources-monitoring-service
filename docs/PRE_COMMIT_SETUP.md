@@ -276,4 +276,4 @@ The pre-commit hooks are designed to work with CI/CD pipelines:
     extra_args: --all-files
 ```
 
-This ensures code quality is maintained across all environments. 
+This ensures code quality is maintained across all environments.

@@ -17,7 +17,7 @@ from .metric_collector import MetricCollector
 
 # Define what gets imported with "from monitor_service import *"
 __all__ = [
-    'MetricCollector',
+    "MetricCollector",
 ]
 
 # Package initialization

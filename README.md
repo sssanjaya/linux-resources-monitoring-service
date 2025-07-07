@@ -38,7 +38,7 @@ This project demonstrates SRE/DevOps best practices by building a lightweight Li
 │                 │    └─────────────────┘
 └─────────────────┘
 ```
-git 
+git
 ## 📁 Project Structure
 
 ```
@@ -185,7 +185,7 @@ bandit -r monitor_service/      # Security scanning
 def test_cpu_metrics_collection():
     collector = MetricCollector()
     metrics = collector.collect_cpu_metrics()
-    
+
     assert 'cpu_usage' in metrics
     assert 0 <= metrics['cpu_usage'] <= 100
     assert 'cpu_count' in metrics
@@ -195,7 +195,7 @@ def test_cpu_metrics_collection():
 def test_alert_threshold_evaluation():
     alert_manager = AlertManager(config)
     metrics = {'cpu_percent': 85}
-    
+
     alerts = alert_manager.evaluate_metrics(metrics)
     assert len(alerts) > 0
     assert alerts[0]['metric'] == 'cpu_percent'

@@ -114,4 +114,4 @@ disable = [
 max-line-length = 88
 
 [tool.pydocstyle]
-convention = "google" 
+convention = "google"
