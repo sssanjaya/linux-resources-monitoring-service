@@ -5,7 +5,10 @@ Collects CPU, memory, and disk metrics using psutil.
 Provides a method to periodically print these metrics.
 """
 
+import json
+import logging
 import time
+from datetime import datetime, timezone
 from typing import Any, Dict
 
 import psutil
@@ -21,6 +24,9 @@ class MetricCollector:
       - metrics collection interval
       - cloud endpoint & credentials
       - threshold values for alerting
+    Adds:
+      - Structured JSON logging (timestamp, level, message)
+      - Robust error handling and retries
     """
 
     def __init__(self, config_path: str = "config.yaml"):
@@ -33,6 +39,16 @@ class MetricCollector:
             "memory_threshold", 80
         )
         self.disk_threshold = self.config.get("alerting", {}).get("disk_threshold", 80)
+        self.logger = self._setup_logger()
+
+    def _setup_logger(self):
+        logger = logging.getLogger("MetricCollector")
+        logger.setLevel(logging.INFO)
+        handler = logging.StreamHandler()
+        handler.setFormatter(JSONLogFormatter())
+        if not logger.hasHandlers():
+            logger.addHandler(handler)
+        return logger
 
     def collect_cpu_metrics(self) -> Dict[str, Any]:
         """
@@ -89,34 +105,84 @@ class MetricCollector:
         Periodically collect and print system metrics every `interval` seconds.
         Press Ctrl+C to stop.
         Interval is loaded from config.yaml if not provided.
+        Logs metrics and errors in structured JSON format.
+        Retries metric collection up to 3 times on error.
         """
         if interval is None:
             interval = self.interval
-        print(f"Metrics collection every {interval} seconds. Press Ctrl+C to stop.")
-        print(f"Cloud endpoint: {self.cloud_endpoint}")
-        print(
-            f"Alert thresholds: CPU={self.cpu_threshold}%, "
-            f"Memory={self.memory_threshold}%, Disk={self.disk_threshold}%"
+        self.logger.info(
+            {
+                "event": "start_monitoring",
+                "interval": interval,
+                "cloud_endpoint": self.cloud_endpoint,
+                "alert_thresholds": {
+                    "cpu": self.cpu_threshold,
+                    "memory": self.memory_threshold,
+                    "disk": self.disk_threshold,
+                },
+            }
         )
         try:
             while True:
-                cpu = self.collect_cpu_metrics()
-                memory = self.collect_memory_metrics()
-                disk = self.collect_disk_metrics()
-                print("\n--- System Metrics ---")
-                print("CPU:", cpu)
-                print("Memory:", memory)
-                print("Disk:", disk)
+                for attempt in range(1, 4):
+                    try:
+                        cpu = self.collect_cpu_metrics()
+                        memory = self.collect_memory_metrics()
+                        disk = self.collect_disk_metrics()
+                        self.logger.info(
+                            {
+                                "event": "metrics_collected",
+                                "cpu": cpu,
+                                "memory": memory,
+                                "disk": disk,
+                            }
+                        )
+                        break
+                    except Exception as e:
+                        self.logger.error(
+                            {
+                                "event": "collection_error",
+                                "error": str(e),
+                                "attempt": attempt,
+                            }
+                        )
+                        if attempt == 3:
+                            self.logger.error(
+                                {
+                                    "event": "max_retries_exceeded",
+                                    "error": str(e),
+                                }
+                            )
+                        else:
+                            time.sleep(2)
                 time.sleep(interval)
         except KeyboardInterrupt:
-            print("\nStopped periodic metrics collection.")
+            self.logger.info({"event": "stopped"})
+
+
+class JSONLogFormatter(logging.Formatter):
+    def format(self, record):
+        log_record = {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "level": record.levelname,
+            "message": record.getMessage(),
+        }
+        # If the message is a dict, merge it
+        if isinstance(record.msg, dict):
+            log_record.update(record.msg)
+        return json.dumps(log_record)
 
 
 if __name__ == "__main__":
     # Example usage: print metrics once
     collector = MetricCollector()
-    print("CPU:", collector.collect_cpu_metrics())
-    print("Memory:", collector.collect_memory_metrics())
-    print("Disk:", collector.collect_disk_metrics())
+    collector.logger.info(
+        {
+            "event": "single_collection",
+            "cpu": collector.collect_cpu_metrics(),
+            "memory": collector.collect_memory_metrics(),
+            "disk": collector.collect_disk_metrics(),
+        }
+    )
     # Uncomment below to run periodic monitoring
     collector.monitor_periodically(interval=collector.interval)
