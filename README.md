@@ -51,6 +51,8 @@ A well-organized folder structure is crucial for code quality, readability, main
 ```
 linux-resources-monitoring-service/
 ├── .gitignore             # To ignore 'venv/', '__pycache__/', etc.
+├── .dockerignore          # Docker build context exclusions
+├── Dockerfile             # Docker image for local dev/testing
 ├── README.md              # Setup, usage, assumptions
 ├── requirements.txt       # Project dependencies
 ├── config.yaml            # Service configuration (metrics, endpoints, thresholds)
@@ -250,3 +252,51 @@ curl http://localhost:8080/metrics
 | **Observability** | Structured logs, appropriate log levels | 🔄 Logging framework in progress, health checks planned |
 | **Testing** | Unit tests with instructions | 🔄 Test framework setup, comprehensive tests planned |
 | **Deployment** | Reproducible setup (systemd/Docker) | 🔄 systemd service definition created, implementation in progress |
+
+## 🚀 Deployment & Local Development
+
+### Running as a systemd Service (Production)
+
+1. Copy `deploy/sre_monitor.service` to `/etc/systemd/system/sre_monitor.service`.
+2. Edit the `User`, `WorkingDirectory`, and `ExecStart` fields as needed.
+3. Reload systemd and start the service:
+   ```bash
+   sudo systemctl daemon-reload
+   sudo systemctl enable sre_monitor
+   sudo systemctl start sre_monitor
+   sudo systemctl status sre_monitor
+   ```
+
+### Running with Docker (Local Development & Testing)
+
+1. Build the Docker image:
+   ```bash
+   docker build -t linux-resources-monitoring-service .
+   ```
+2. Run the container:
+   ```bash
+   docker run --rm linux-resources-monitoring-service
+   ```
+
+*The Dockerfile uses Python 3.10 and runs the monitor service as the default command.*
+
+## 🛠️ Makefile Commands
+
+For easier development and testing, use the provided Makefile:
+
+- `make venv`           – Create a Python virtual environment
+- `make install`        – Install dependencies into the venv
+- `make run`            – Run the monitor service locally
+- `make test`           – Run all tests
+- `make lint`           – Run flake8 linter
+- `make format`         – Format code with Black
+- `make docker-build`   – Build the Docker image
+- `make docker-run`     – Run the Docker container
+- `make clean`          – Remove venv, caches, and build artifacts
+
+Example usage:
+```bash
+make venv
+make install
+make run
+```

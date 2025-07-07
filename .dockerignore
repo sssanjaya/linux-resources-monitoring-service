@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+env/
+ENV/
+.env
+.git
+.idea/
+.DS_Store
+deployment/
+deploy/

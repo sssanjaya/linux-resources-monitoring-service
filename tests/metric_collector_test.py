@@ -1,0 +1,57 @@
+"""
+Unit tests for the MetricCollector class in monitor_service.metric_collector.
+
+These tests verify that the metric collection methods return dictionaries
+with the expected keys and value types for CPU, memory, and disk metrics.
+"""
+
+import pytest
+
+from monitor_service.metric_collector import MetricCollector
+
+
+@pytest.fixture
+def collector():
+    """Fixture to provide a MetricCollector instance for tests."""
+    return MetricCollector()
+
+
+def test_collect_cpu_metrics(collector):
+    """Test that collect_cpu_metrics returns expected keys and value types."""
+    cpu = collector.collect_cpu_metrics()
+    assert isinstance(cpu, dict)
+    assert "cpu_usage" in cpu
+    assert "cpu_count" in cpu
+    assert "per_core_usage" in cpu
+    assert isinstance(cpu["cpu_usage"], (int, float))
+    assert isinstance(cpu["cpu_count"], int)
+    assert isinstance(cpu["per_core_usage"], list)
+
+
+def test_collect_memory_metrics(collector):
+    """Test that collect_memory_metrics returns expected keys and value types."""
+    mem = collector.collect_memory_metrics()
+    assert isinstance(mem, dict)
+    for key in ["total_gb", "used_gb", "free_gb", "percent"]:
+        assert key in mem
+    assert isinstance(mem["total_gb"], float)
+    assert isinstance(mem["used_gb"], float)
+    assert isinstance(mem["free_gb"], float)
+    assert isinstance(mem["percent"], (int, float))
+
+
+def test_collect_disk_metrics(collector):
+    """Test that collect_disk_metrics returns expected keys
+    and value types for each mountpoint."""
+    disk = collector.collect_disk_metrics()
+    assert isinstance(disk, dict)
+    # At least one mountpoint should be present
+    assert disk
+    for mount, info in disk.items():
+        assert isinstance(info, dict)
+        for key in ["total_gb", "used_gb", "free_gb", "percent"]:
+            assert key in info
+        assert isinstance(info["total_gb"], float)
+        assert isinstance(info["used_gb"], float)
+        assert isinstance(info["free_gb"], float)
+        assert isinstance(info["percent"], (int, float))
