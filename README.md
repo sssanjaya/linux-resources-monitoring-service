@@ -38,7 +38,7 @@ This project demonstrates SRE/DevOps best practices by building a lightweight Li
 │                 │    └─────────────────┘
 └─────────────────┘
 ```
-git
+
 ## 📁 Project Structure
 
 ```
@@ -50,8 +50,7 @@ linux-resources-monitoring-service/
 │   ├── alerting.py          # Threshold monitoring & alerts 🔄
 │   └── config.py            # Configuration management 🔄
 ├── tests/                   # Unit and integration tests
-│   ├── __init__.py          # Test package initialization 🔄
-│   └── test_metric_collector.py # Metric collection tests 🔄
+│   └── __init__.py          # Test package initialization 🔄
 ├── config/                  # Configuration files
 │   └── config.yaml         # Service settings & thresholds 🔄
 ├── deployment/              # Production deployment
@@ -165,17 +164,13 @@ tests/
 ### Code Quality & Testing
 
 ```bash
-# Run all tests with coverage
-pytest tests/ --cov=monitor_service --cov-report=html
-
-# Run pre-commit hooks (includes tests)
+# Run pre-commit hooks
 pre-commit run --all-files
 
 # Run specific quality checks
 black monitor_service/          # Code formatting
+isort monitor_service/          # Import sorting
 flake8 monitor_service/         # Linting
-mypy monitor_service/           # Type checking
-bandit -r monitor_service/      # Security scanning
 ```
 
 ### Test Examples (Planned)
@@ -234,18 +229,15 @@ The service will include intelligent alerting with:
 
 ## 🎯 Code Quality Standards
 
-This project follows strict code quality standards enforced by pre-commit hooks:
+This project uses pre-commit hooks for code quality:
 
 - **Code Formatting**: Black (88 character line length)
 - **Import Sorting**: isort (Black-compatible)
-- **Linting**: flake8 and pylint
-- **Type Checking**: mypy (strict mode)
-- **Security**: bandit vulnerability scanning
-- **Documentation**: pydocstyle (Google convention)
-- **Git Hygiene**: Various git best practices
-- **Testing**: pytest runs on every push
+- **Linting**: flake8
+- **Git Hygiene**: Remove trailing whitespace, fix end of files
+- **Commit Messages**: Conventional commits
 
-See [docs/PRE_COMMIT_SETUP.md](docs/PRE_COMMIT_SETUP.md) for detailed setup instructions.
+See [docs/PRE_COMMIT_SETUP.md](docs/PRE_COMMIT_SETUP.md) for setup instructions.
 
 ## 🛠️ Development
 
@@ -302,17 +294,16 @@ git push origin feature/add-new-metric
 # 1. Create feature branch
 git checkout -b feature/add-new-metric
 
-# 2. Make changes and ensure code quality
-pre-commit run --all-files
+# 2. Make changes
+# ... edit files ...
 
-# 3. Commit with conventional commit message
+# 3. Stage and commit (hooks run automatically)
+git add .
 git commit -m "feat: add new monitoring capability"
 
-# 4. Push (tests run automatically)
+# 4. Push
 git push origin feature/add-new-metric
 ```
-
-**Note**: Pre-commit hooks run automatically on commit and push to ensure code quality.
 
 ## 🔧 Troubleshooting
 
@@ -386,7 +377,7 @@ curl http://localhost:8080/metrics
 | **Reliability** | Error handling, retries, alert storm prevention | ✅ Error handling in collector, 🔄 retries/alerting in progress |
 | **Documentation** | Clear README, comments, config explanations | ✅ Comprehensive README, inline documentation, configuration examples, troubleshooting guide |
 | **Observability** | Structured logs, appropriate log levels | 🔄 Logging framework in progress, health checks planned |
-| **Testing** | Unit tests with instructions | ✅ pytest framework setup, pre-commit integration, comprehensive tests planned |
+| **Testing** | Unit tests with instructions | 🔄 Test framework setup, comprehensive tests planned |
 | **Deployment** | Reproducible setup (systemd/Docker) | 🔄 systemd service definition created, implementation in progress |
 
 ## 🤝 Contributing
@@ -397,16 +388,7 @@ This is a learning project demonstrating SRE/DevOps best practices. Each compone
 - Production-ready error handling
 - Comprehensive logging and monitoring
 - Automated testing and deployment
-- Strict code quality standards with pre-commit hooks
-
-### Development Standards
-
-- **Code Style**: Black formatting, isort imports, flake8 linting
-- **Type Safety**: mypy type checking with strict mode
-- **Security**: bandit vulnerability scanning
-- **Documentation**: Google-style docstrings with pydocstyle
-- **Testing**: pytest with coverage reporting
-- **Git Workflow**: Conventional commit messages with commitizen
+- Code quality standards with pre-commit hooks
 
 ## 📄 License
 
