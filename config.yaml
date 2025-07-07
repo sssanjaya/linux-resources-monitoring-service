@@ -1,9 +1,9 @@
 metrics:
-  interval: 5  # seconds
+  interval: 30  # seconds
 
 cloud:
-  endpoint: "https://your-cloud-endpoint.com/api/metrics"
-  api_key: "YOUR_API_KEY"
+  endpoint: "http://localhost:8000/api/metrics"
+  api_key: "dev-local-key"
 
 alerting:
   cpu_threshold: 90      # percent
