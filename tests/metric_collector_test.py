@@ -1,8 +1,9 @@
 """
 Unit tests for the MetricCollector class in monitor_service.metric_collector.
 
-These tests verify that the metric collection methods return dictionaries
-with the expected keys and value types for CPU, memory, and disk metrics.
+These tests verify:
+- Metric collection methods return dictionaries with expected keys and value types.
+- Robust error handling and retry logic in periodic monitoring.
 """
 
 import pytest
