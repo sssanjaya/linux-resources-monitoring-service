@@ -18,7 +18,10 @@ class MetricCollector:
     """
 
     def collect_cpu_metrics(self) -> Dict[str, Any]:
-        """Collect basic CPU metrics."""
+        """
+        Collect basic CPU metrics.
+        Returns a dictionary with CPU usage, count, per-core usage
+        """
         return {
             "cpu_usage": psutil.cpu_percent(interval=1),
             "cpu_count": psutil.cpu_count(logical=True),
@@ -28,14 +31,16 @@ class MetricCollector:
     def collect_memory_metrics(self) -> Dict[str, Any]:
         """
         Collect basic memory metrics.
-        Returns a dictionary with total, used, free memory (in GB), and percent used.
+        Returns a dictionary with total, used, free memory
+        (in GB, rounded to 2 decimal places), and percent used.
         """
         mem = psutil.virtual_memory()
         gb = 1024**3
+        # GB values are rounded to 2 decimal places for readability
         return {
-            "total_gb": mem.total / gb,
-            "used_gb": mem.used / gb,
-            "free_gb": mem.free / gb,
+            "total_gb": round(mem.total / gb, 2),
+            "used_gb": round(mem.used / gb, 2),
+            "free_gb": round(mem.free / gb, 2),
             "percent": mem.percent,
         }
 
@@ -43,15 +48,18 @@ class MetricCollector:
         """
         Collect disk usage metrics for all partitions.
         Returns a dictionary with mountpoints as keys and disk usage info as values.
+        GB values are rounded to 2 decimal places.
         """
         disk_metrics = {}
+        gb = 1024**3
         for part in psutil.disk_partitions():
             try:
                 usage = psutil.disk_usage(part.mountpoint)
+                # GB values are rounded to 2 decimal places for readability
                 disk_metrics[part.mountpoint] = {
-                    "total_gb": usage.total / (1024**3),
-                    "used_gb": usage.used / (1024**3),
-                    "free_gb": usage.free / (1024**3),
+                    "total_gb": round(usage.total / gb, 2),
+                    "used_gb": round(usage.used / gb, 2),
+                    "free_gb": round(usage.free / gb, 2),
                     "percent": usage.percent,
                 }
             except Exception:
@@ -63,13 +71,13 @@ class MetricCollector:
         Periodically collect and print system metrics every `interval` seconds.
         Press Ctrl+C to stop.
         """
-        print(f"metrics collection every {interval} seconds. Press Ctrl+C to stop.")
+        print(f"Metrics collection every {interval} seconds. Press Ctrl+C to stop.")
         try:
             while True:
                 cpu = self.collect_cpu_metrics()
                 memory = self.collect_memory_metrics()
                 disk = self.collect_disk_metrics()
-                print("\n--- System Metrics ---")
+                print(f"\n--- System Metrics Monitoring - every {interval} seconds ---")
                 print("CPU:", cpu)
                 print("Memory:", memory)
                 print("Disk:", disk)
@@ -85,4 +93,4 @@ if __name__ == "__main__":
     print("Memory:", collector.collect_memory_metrics())
     print("Disk:", collector.collect_disk_metrics())
     # Uncomment below to run periodic monitoring
-    # collector.monitor_periodically(interval=5)
+    collector.monitor_periodically(interval=5)

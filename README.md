@@ -2,7 +2,7 @@
 
 A production-ready Python service for monitoring Linux system resources with cloud ingestion, alerting, and visualization capabilities.
 
-## 📋 Assignment Overview
+## Assignment Overview
 
 **Site Reliability Engineer Take-Home Assignment**
 
@@ -17,7 +17,7 @@ This project demonstrates SRE/DevOps best practices by building a lightweight Li
 - 🔄 **Production Ready**: systemd service with structured logging (in progress)
 - 🔄 **Observability**: Health checks, metrics, and comprehensive logging (in progress)
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
@@ -39,35 +39,52 @@ This project demonstrates SRE/DevOps best practices by building a lightweight Li
 └─────────────────┘
 ```
 
-## 📁 Project Structure
+## Project Structure
+
+A well-organized folder structure is crucial for code quality, readability, maintainability, testability, and reproducible deployment. Python organizes code primarily through modules and packages:
+
+- **Modules**: Single Python files (e.g., `my_module.py`) containing variables, classes, or functions. Modules promote reusability and separation of concerns.
+- **Packages**: Folders containing modules, made recognizable to Python by the presence of an `__init__.py` file. Packages allow for hierarchical organization and better abstraction as projects grow.
+
+**Example Structure for SRE Assignment:**
 
 ```
 linux-resources-monitoring-service/
-├── monitor_service/          # Core monitoring package
-│   ├── __init__.py          # Package initialization ✅
-│   ├── metric_collector.py  # CPU, memory, disk collection ✅
-│   ├── sender.py            # HTTP client with retry logic 🔄
-│   ├── alerting.py          # Threshold monitoring & alerts 🔄
-│   └── config.py            # Configuration management 🔄
-├── tests/                   # Unit and integration tests
-│   └── __init__.py          # Test package initialization 🔄
-├── config/                  # Configuration files
-│   └── config.yaml         # Service settings & thresholds 🔄
-├── deployment/              # Production deployment
-│   └── monitor.service     # systemd service definition 🔄
-├── docs/                    # Documentation
-│   └── PRE_COMMIT_SETUP.md # Pre-commit setup guide ✅
-├── scripts/                 # Setup and utility scripts
-│   └── setup-pre-commit.sh # Pre-commit setup script ✅
-├── requirements.txt         # Python dependencies ✅
-├── pyproject.toml          # Project configuration ✅
-├── .pre-commit-config.yaml # Pre-commit hooks config ✅
-└── README.md               # This documentation ✅
+├── .gitignore             # To ignore 'venv/', '__pycache__/', etc.
+├── README.md              # Setup, usage, assumptions
+├── requirements.txt       # Project dependencies
+├── config.yaml            # Service configuration (metrics, endpoints, thresholds)
+├── setup.py               # For packaging and distribution
+├── monitor_service/
+│   ├── __init__.py        # Makes it a Python package
+│   ├── metric_collector.py # Gathers system metrics (CPU, Memory, Disk)
+│   ├── cloud_ingestion.py  # Flask/FastAPI endpoint to receive metrics
+│   ├── alerts.py          # Alerting logic with cooldown
+│   └── utils.py           # Helper functions (e.g., for structured logging)
+├── tests/
+│   ├── __init__.py
+│   └── test_metrics.py    # Unit tests for metric collection (add as needed)
+├── deploy/                # Optional: For systemd service file, Dockerfile etc.
+│   └── sre_monitor.service # Systemd service file
+├── docs/                  # Documentation (e.g., pre-commit setup)
+│   └── PRE_COMMIT_SETUP.md
+├── scripts/               # Setup and utility scripts
+│   └── setup-pre-commit.sh
+└── venv/                  # Virtual environment (ignored by Git)
 ```
 
-**Legend**: ✅ Implemented | 🔄 In Progress/Placeholder
+*Note: Some files may be placeholders for future implementation.*
 
-## 🚀 Quick Start
+**Key Points:**
+- The `monitor_service/` directory is a Python package (contains `__init__.py`) and holds all core logic.
+- Configuration, deployment, and documentation are separated for clarity and maintainability.
+- Tests are isolated in their own directory for easy discovery and execution.
+- The use of a virtual environment (`venv/`) is recommended for dependency isolation and reproducibility.
+
+**Why this structure?**
+This layout ensures clear separation of concerns, making your project easier to develop, debug, and deploy. It aligns with expert SRE and Python best practices, supporting code quality, maintainability, and reproducible deployment.
+
+## Quick Start
 
 ### Prerequisites
 
@@ -159,7 +176,7 @@ git commit -m "feat: add new monitoring capability"
 git push origin feature/add-new-metric
 ```
 
-## 🔧 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
@@ -203,7 +220,7 @@ sudo journalctl -u monitor | grep ERROR
 sudo journalctl -u monitor --since "1 hour ago" > monitor.log
 ```
 
-## 📈 Monitoring & Observability (Planned)
+## Monitoring & Observability (Planned)
 
 ### Health Checks
 
@@ -222,7 +239,7 @@ curl http://localhost:8080/metrics
 - **Alert frequency**: Number of alerts triggered per time period
 - **Service uptime**: Service availability percentage
 
-## 🏆 Evaluation Criteria Alignment
+## Evaluation Criteria Alignment
 
 | **Category** | **What We're Looking For** | **Implementation Status** |
 |--------------|----------------------------|---------------------------|
