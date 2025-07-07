@@ -303,3 +303,30 @@ make venv
 make install
 make run
 ```
+
+## ⚙️ Configuration via config.yaml
+
+The service loads its configuration from `config.yaml` in the project root. Example structure:
+
+```yaml
+metrics:
+  interval: 5  # seconds
+
+cloud:
+  endpoint: "https://your-cloud-endpoint.com/api/metrics"
+  api_key: "YOUR_API_KEY"
+
+alerting:
+  cpu_threshold: 90      # percent
+  memory_threshold: 80   # percent
+  disk_threshold: 80     # percent
+```
+
+- **metrics.interval**: How often to collect metrics (in seconds)
+- **cloud.endpoint**: URL to send metrics to (future feature)
+- **cloud.api_key**: API key or credentials for the cloud endpoint
+- **alerting.cpu_threshold**: CPU usage percent to trigger alert
+- **alerting.memory_threshold**: Memory usage percent to trigger alert
+- **alerting.disk_threshold**: Disk usage percent to trigger alert
+
+Update these values as needed for your environment.
