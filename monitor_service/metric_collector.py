@@ -7,11 +7,15 @@ Provides a method to periodically print these metrics.
 
 import json
 import logging
+import socket
 import time
 from datetime import datetime, timezone
 from typing import Any, Dict
 
 import psutil
+import requests
+from influxdb_client import InfluxDBClient, Point
+from influxdb_client.client.write_api import SYNCHRONOUS
 
 from monitor_service.utils import load_config
 
@@ -100,6 +104,66 @@ class MetricCollector:
                 continue
         return disk_metrics
 
+    def send_metrics(self, metrics: dict) -> None:
+        """
+        Send metrics to the configured cloud endpoint as a JSON payload.
+        Includes timestamp and hostname. Logs success or error.
+        """
+        if not self.cloud_endpoint:
+            self.logger.warning(
+                {"event": "no_cloud_endpoint", "msg": "No cloud endpoint configured."}
+            )
+            return
+        payload = {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "hostname": socket.gethostname(),
+            "metrics": metrics,
+        }
+        headers = {
+            "Content-Type": "application/json",
+            "x-api-key": self.cloud_api_key,
+        }
+        try:
+            response = requests.post(
+                self.cloud_endpoint, json=payload, headers=headers, timeout=5
+            )
+            response.raise_for_status()
+            self.logger.info({"event": "metrics_sent", "response": response.json()})
+        except Exception as e:
+            self.logger.error({"event": "send_error", "error": str(e)})
+
+    def write_metrics_influxdb(self, metrics: dict) -> None:
+        """
+        Write metrics to InfluxDB if configured.
+        """
+        influx_conf = self.config.get("influxdb", {})
+        url = influx_conf.get("url")
+        token = influx_conf.get("token")
+        org = influx_conf.get("org")
+        bucket = influx_conf.get("bucket")
+        if not (url and token and org and bucket):
+            self.logger.warning(
+                {"event": "no_influxdb_config", "msg": "No InfluxDB config provided."}
+            )
+            return
+        try:
+            with InfluxDBClient(url=url, token=token, org=org) as client:
+                write_api = client.write_api(write_options=SYNCHRONOUS)
+                ts = datetime.now(timezone.utc)
+                hostname = socket.gethostname()
+                for metric_type, values in metrics.items():
+                    point = Point(metric_type).tag("host", hostname).time(ts)
+                    for k, v in values.items():
+                        point = point.field(
+                            k, float(v) if isinstance(v, (int, float)) else 0
+                        )
+                    write_api.write(bucket=bucket, org=org, record=point)
+                self.logger.info(
+                    {"event": "metrics_written_influxdb", "bucket": bucket}
+                )
+        except Exception as e:
+            self.logger.error({"event": "influxdb_error", "error": str(e)})
+
     def monitor_periodically(self, interval: int = None) -> None:
         """
         Periodically collect and print system metrics every `interval` seconds.
@@ -137,6 +201,13 @@ class MetricCollector:
                                 "disk": disk,
                             }
                         )
+                        metrics = {
+                            "cpu": cpu,
+                            "memory": memory,
+                            "disk": disk,
+                        }
+                        self.send_metrics(metrics)
+                        self.write_metrics_influxdb(metrics)
                         break
                     except Exception as e:
                         self.logger.error(

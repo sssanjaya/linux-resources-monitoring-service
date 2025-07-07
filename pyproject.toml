@@ -69,6 +69,10 @@ markers = [
     "integration: marks tests as integration tests",
     "unit: marks tests as unit tests",
 ]
+filterwarnings = [
+    "ignore::DeprecationWarning:reactivex.*",
+    "ignore::PendingDeprecationWarning:reactivex.*",
+]
 
 [tool.commitizen]
 name = "cz_conventional_commits"

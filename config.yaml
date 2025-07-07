@@ -1,5 +1,5 @@
 metrics:
-  interval: 30  # seconds
+  interval: 10  # seconds
 
 cloud:
   endpoint: "http://localhost:8000/api/metrics"
@@ -9,3 +9,9 @@ alerting:
   cpu_threshold: 90      # percent
   memory_threshold: 80   # percent
   disk_threshold: 80     # percent
+
+influxdb:
+  url: "http://localhost:8086"
+  token: "demo-token"
+  org: "demo-org"
+  bucket: "metrics"

@@ -1,4 +1,4 @@
-# Pre-commit Setup
+git # Pre-commit Setup
 
 Simple pre-commit hooks for code quality and git best practices.
 

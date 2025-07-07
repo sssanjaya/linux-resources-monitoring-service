@@ -18,6 +18,7 @@ htmlcov/
 # IDE/editor files
 .idea/
 .DS_Store
+.vscode
 
 # Deployment directories
 deployment/
