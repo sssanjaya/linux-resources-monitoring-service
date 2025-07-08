@@ -132,11 +132,42 @@ class MetricCollector:
         except Exception as e:
             self.logger.error({"event": "send_error", "error": str(e)})
 
+    def _get_influxdb_config(self):
+        """
+        Get InfluxDB configuration.
+        """
+        return self.config.get("influxdb", {})
+
+    def _format_point(self, metric_type, values, hostname, ts):
+        """
+        Format a single metric point for InfluxDB.
+        """
+        point = Point(metric_type).tag("host", hostname).time(ts)
+        for k, v in values.items():
+            if k == "per_core_usage" and isinstance(v, list):
+                for i, core_usage in enumerate(v):
+                    point = point.field(f"core_{i}", float(core_usage))
+            elif isinstance(v, (int, float)):
+                point = point.field(k, float(v))
+        return point
+
+    def _format_disk_points(self, values, hostname, ts):
+        """
+        Format disk metric points for InfluxDB.
+        """
+        points = []
+        for mount, stats in values.items():
+            point = Point("disk").tag("host", hostname).tag("mount", mount).time(ts)
+            for k, v in stats.items():
+                point = point.field(k, float(v) if isinstance(v, (int, float)) else 0)
+            points.append(point)
+        return points
+
     def write_metrics_influxdb(self, metrics: dict) -> None:
         """
         Write metrics to InfluxDB if configured.
         """
-        influx_conf = self.config.get("influxdb", {})
+        influx_conf = self._get_influxdb_config()
         url = influx_conf.get("url")
         token = influx_conf.get("token")
         org = influx_conf.get("org")
@@ -152,17 +183,40 @@ class MetricCollector:
                 ts = datetime.now(timezone.utc)
                 hostname = socket.gethostname()
                 for metric_type, values in metrics.items():
-                    point = Point(metric_type).tag("host", hostname).time(ts)
-                    for k, v in values.items():
-                        point = point.field(
-                            k, float(v) if isinstance(v, (int, float)) else 0
-                        )
-                    write_api.write(bucket=bucket, org=org, record=point)
+                    if metric_type == "disk":
+                        points = self._format_disk_points(values, hostname, ts)
+                        write_api.write(bucket=bucket, org=org, record=points)
+                    else:
+                        point = self._format_point(metric_type, values, hostname, ts)
+                        write_api.write(bucket=bucket, org=org, record=point)
                 self.logger.info(
                     {"event": "metrics_written_influxdb", "bucket": bucket}
                 )
         except Exception as e:
             self.logger.error({"event": "influxdb_error", "error": str(e)})
+
+    def _collect_and_send_metrics(self):
+        """
+        Collect all metrics and send them to the configured endpoints.
+        """
+        cpu = self.collect_cpu_metrics()
+        memory = self.collect_memory_metrics()
+        disk = self.collect_disk_metrics()
+        self.logger.info(
+            {
+                "event": "metrics_collected",
+                "cpu": cpu,
+                "memory": memory,
+                "disk": disk,
+            }
+        )
+        metrics = {
+            "cpu": cpu,
+            "memory": memory,
+            "disk": disk,
+        }
+        self.send_metrics(metrics)
+        self.write_metrics_influxdb(metrics)
 
     def monitor_periodically(self, interval: int = None) -> None:
         """
@@ -190,24 +244,7 @@ class MetricCollector:
             while True:
                 for attempt in range(1, 4):
                     try:
-                        cpu = self.collect_cpu_metrics()
-                        memory = self.collect_memory_metrics()
-                        disk = self.collect_disk_metrics()
-                        self.logger.info(
-                            {
-                                "event": "metrics_collected",
-                                "cpu": cpu,
-                                "memory": memory,
-                                "disk": disk,
-                            }
-                        )
-                        metrics = {
-                            "cpu": cpu,
-                            "memory": memory,
-                            "disk": disk,
-                        }
-                        self.send_metrics(metrics)
-                        self.write_metrics_influxdb(metrics)
+                        self._collect_and_send_metrics()
                         break
                     except Exception as e:
                         self.logger.error(

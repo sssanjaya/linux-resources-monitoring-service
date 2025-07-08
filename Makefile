@@ -1,4 +1,4 @@
-.PHONY: venv install run test test-health test-health-endpoints lint format docker-build docker-run clean docker-compose-up docker-compose-down grafana-import fastapi-server help
+.PHONY: venv install run test test-health test-health-endpoints lint format docker-build docker-run clean docker-compose-up docker-compose-down grafana-import fastapi-server help dev
 
 # Create Python virtual environment
 venv:
@@ -58,7 +58,7 @@ grafana-import:
 
 # Run the FastAPI ingestion server
 fastapi-server:
-	venv/bin/uvicorn monitor_service.cloud_ingestion:app --host 0.0.0.0 --port 8000
+	venv/bin/uvicorn monitor_service.cloud_ingestion:app --host 0.0.0.0 --port 8080
 
 # Test health endpoints (requires server running)
 test-health-endpoints:
@@ -76,3 +76,10 @@ clean:
 help:
 	@echo "Available targets:"
 	@grep -E '^[a-zA-Z_-]+:' Makefile | cut -d: -f1 | sort | uniq | xargs -n1 echo '  -'
+
+# Run all services for local development
+dev:
+	@echo "Starting local development environment..."
+	@make docker-compose-up
+	@make fastapi-server &
+	@make run

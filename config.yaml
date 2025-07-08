@@ -6,7 +6,7 @@ metrics:
 
 # Cloud ingestion settings
 cloud:
-  endpoint: "http://localhost:8000/api/metrics"  # API endpoint for metrics
+  endpoint: "http://localhost:8080/api/metrics"  # API endpoint for metrics
   api_key: "dev-local-key"  # API key for authentication
 
 # Alerting thresholds (percentages)

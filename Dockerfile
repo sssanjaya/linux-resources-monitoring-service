@@ -23,6 +23,9 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
+# Copy configuration file
+COPY config.yaml .
+
 # Copy application code
 COPY monitor_service/ ./monitor_service/
 
@@ -40,4 +43,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
 CMD ["python", "-m", "monitor_service.metric_collector"]
 
 # To run the API server:
-# docker run --rm -p 8000:8000 linux-resources-monitoring-service python -m monitor_service.cloud_ingestion
+# docker run --rm -p 8000:8000 monitor-app python -m monitor_service.cloud_ingestion

@@ -60,6 +60,15 @@ influxdb:
   bucket: "metrics"
 ```
 
+### Local Development
+
+To simplify local development, a `dev` command is provided in the `Makefile`. This command will start all the necessary services in the correct order.
+
+```bash
+# Start the entire local development environment
+make dev
+```
+
 ### Running the Service
 
 #### Using Makefile (Recommended)
@@ -156,6 +165,71 @@ make docker-compose-up
 3. Select InfluxDB as data source
 4. View your metrics!
 
+### Grafana Dashboard Queries
+
+Here are the Flux queries for a comprehensive Grafana dashboard.
+
+**1. CPU Utilization (Overall and Per-Core)**
+
+*   **Panel Type**: Time series
+*   **Panel Title**: CPU Utilization
+
+```flux
+from(bucket: "metrics")
+  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
+  |> filter(fn: (r) => r._measurement == "cpu")
+  |> filter(fn: (r) => r._field =~ /^cpu_usage$|^core_/)
+  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)
+  |> yield(name: "mean")
+```
+
+**2. Memory Usage (Percentage)**
+
+*   **Panel Type**: Time series
+*   **Panel Title**: Memory Usage (%)
+
+```flux
+from(bucket: "metrics")
+  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
+  |> filter(fn: (r) => r._measurement == "memory")
+  |> filter(fn: (r) => r._field == "percent")
+  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)
+  |> yield(name: "mean")
+```
+
+**3. Memory Usage (Stats)**
+
+*   **Panel Type**: Stat
+*   **Panel Title**: Memory Usage
+
+```flux
+from(bucket: "metrics")
+  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
+  |> filter(fn: (r) => r._measurement == "memory")
+  |> filter(fn: (r) => r._field == "total_gb" or r._field == "used_gb" or r._field == "free_gb")
+  |> last()
+```
+
+**4. Disk Usage (Table)**
+
+*   **Panel Type**: Table
+*   **Panel Title**: Disk Usage
+
+```flux
+from(bucket: "metrics")
+  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
+  |> filter(fn: (r) => r._measurement == "disk")
+  |> filter(fn: (r) =>
+    r._field == "total_gb" or
+    r._field == "used_gb" or
+    r._field == "free_gb" or
+    r._field == "percent"
+  )
+  |> last()
+  |> pivot(rowKey:["mount", "host"], columnKey: ["_field"], valueColumn: "_value")
+  |> keep(columns: ["mount", "total_gb", "used_gb", "free_gb", "percent"])
+```
+
 ## Development
 
 ### Code Quality
@@ -182,6 +256,7 @@ make docker-run
 ## Available Makefile Targets
 
 ```bash
+make dev                     # Run all services for local development
 make help                    # Show all available targets
 make venv                    # Create virtual environment
 make install                 # Install dependencies
@@ -196,6 +271,12 @@ make docker-build            # Build Docker image
 make docker-run              # Run Docker container
 make clean                   # Clean build artifacts
 ```
+
+## Code Refinements
+
+- **Refactored for Clarity**: The codebase has been refactored to improve readability and maintainability. High-complexity functions and tests have been broken down into smaller, more manageable pieces.
+- **Improved Testability**: The tests have been refactored to be more focused and easier to debug.
+- **Simplified Local Development**: A `make dev` command has been added to simplify the process of starting the local development environment.
 
 ## More Documentation
 - [Systemd & Docker Deployment](docs/DEPLOYMENT.md)

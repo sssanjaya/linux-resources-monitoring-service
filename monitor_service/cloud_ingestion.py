@@ -8,10 +8,12 @@ import psutil
 from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel, Field
 
+API_VERSION = "1.0.0"
+
 app = FastAPI(
     title="Linux Resources Monitoring API",
     description="API for ingesting and monitoring Linux system metrics",
-    version="1.0.0",
+    version=API_VERSION,
 )
 
 
@@ -67,7 +69,7 @@ async def health_check():
     return HealthResponse(
         status="healthy",
         timestamp=datetime.now(timezone.utc).isoformat(),
-        version="1.0.0",
+        version=API_VERSION,
         uptime=uptime,
     )
 
@@ -82,7 +84,7 @@ async def readiness_check():
     return HealthResponse(
         status="ready",
         timestamp=datetime.now(timezone.utc).isoformat(),
-        version="1.0.0",
+        version=API_VERSION,
         uptime=uptime,
     )
 
@@ -97,7 +99,7 @@ async def liveness_check():
     return HealthResponse(
         status="alive",
         timestamp=datetime.now(timezone.utc).isoformat(),
-        version="1.0.0",
+        version=API_VERSION,
         uptime=uptime,
     )
 
@@ -143,7 +145,7 @@ async def detailed_health_check():
         return DetailedHealthResponse(
             status="healthy",
             timestamp=datetime.now(timezone.utc).isoformat(),
-            version="1.0.0",
+            version=API_VERSION,
             uptime=uptime,
             system_info=system_info,
             memory_usage=memory_usage,
@@ -161,7 +163,7 @@ async def root():
     """
     return {
         "message": "Linux Resources Monitoring API",
-        "version": "1.0.0",
+        "version": API_VERSION,
         "endpoints": {
             "health": "/health",
             "readiness": "/health/ready",

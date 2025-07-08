@@ -92,9 +92,10 @@ def test_liveness_check():
     assert "uptime" in data
 
 
-def test_detailed_health_check():
+def test_detailed_health_check_status_and_basic_info():
     """
-    Test detailed health check endpoint.
+    Test that the detailed health check
+    returns the correct status and basic information.
     """
     client = TestClient(app)
     response = client.get("/health/detailed")
@@ -104,24 +105,51 @@ def test_detailed_health_check():
     assert "timestamp" in data
     assert data["version"] == "1.0.0"
     assert "uptime" in data
-    assert "system_info" in data
-    assert "memory_usage" in data
-    assert "disk_usage" in data
 
-    # Check system_info structure
+
+def test_detailed_health_check_system_info():
+    """
+    Test the structure and content of the system_info field
+    in the detailed health check.
+    """
+    client = TestClient(app)
+    response = client.get("/health/detailed")
+    assert response.status_code == 200
+    data = response.json()
+    assert "system_info" in data
     system_info = data["system_info"]
     assert "hostname" in system_info
     assert "platform" in system_info
     assert "cpu_count" in system_info
     assert "cpu_percent" in system_info
 
-    # Check memory_usage structure
+
+def test_detailed_health_check_memory_usage():
+    """
+    Test the structure and content of the memory_usage field
+    in the detailed health check.
+    """
+    client = TestClient(app)
+    response = client.get("/health/detailed")
+    assert response.status_code == 200
+    data = response.json()
+    assert "memory_usage" in data
     memory_usage = data["memory_usage"]
     assert "total_gb" in memory_usage
     assert "used_gb" in memory_usage
     assert "percent" in memory_usage
 
-    # Check disk_usage structure
+
+def test_detailed_health_check_disk_usage():
+    """
+    Test the structure and content of the disk_usage field
+    in the detailed health check.
+    """
+    client = TestClient(app)
+    response = client.get("/health/detailed")
+    assert response.status_code == 200
+    data = response.json()
+    assert "disk_usage" in data
     disk_usage = data["disk_usage"]
     assert "total_gb" in disk_usage
     assert "used_gb" in disk_usage

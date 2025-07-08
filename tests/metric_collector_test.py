@@ -41,15 +41,19 @@ def test_collect_memory_metrics(collector):
     assert isinstance(mem["percent"], (int, float))
 
 
-def test_collect_disk_metrics(collector):
-    """Test that collect_disk_metrics returns expected keys
-    and value types for each mountpoint."""
+def test_collect_disk_metrics_structure(collector):
+    """Test that collect_disk_metrics returns a dictionary of dictionaries."""
     disk = collector.collect_disk_metrics()
     assert isinstance(disk, dict)
-    # At least one mountpoint should be present
-    assert disk
+    assert disk, "Disk metrics should not be empty"
     for mount, info in disk.items():
         assert isinstance(info, dict)
+
+
+def test_collect_disk_metrics_fields(collector):
+    """Test that each disk metric has the expected fields and value types."""
+    disk = collector.collect_disk_metrics()
+    for mount, info in disk.items():
         for key in ["total_gb", "used_gb", "free_gb", "percent"]:
             assert key in info
         assert isinstance(info["total_gb"], float)
