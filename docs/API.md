@@ -33,7 +33,7 @@ Basic health check endpoint that returns service status.
 - Simple uptime verification
 
 #### GET /health/ready
-Readiness check endpoint for Kubernetes and container orchestration.
+Readiness check endpoint for container orchestration.
 
 **Response:**
 ```json
@@ -46,7 +46,7 @@ Readiness check endpoint for Kubernetes and container orchestration.
 ```
 
 **Use Cases:**
-- Kubernetes readiness probes
+- Container orchestration readiness probes
 - Service mesh health checks
 - Container orchestration platforms
 
@@ -64,7 +64,7 @@ Liveness check endpoint for service monitoring.
 ```
 
 **Use Cases:**
-- Kubernetes liveness probes
+- Container orchestration liveness probes
 - Service monitoring systems
 - Process health verification
 
@@ -271,7 +271,7 @@ The API uses structured JSON logging with the following fields:
 
 ### Health Check Configuration
 
-For Kubernetes deployment, configure health checks:
+For container orchestration deployment, configure health checks:
 
 ```yaml
 livenessProbe:

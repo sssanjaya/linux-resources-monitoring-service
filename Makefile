@@ -31,12 +31,12 @@ format:
 
 # Build Docker image for the collector
 docker-build:
-	docker build -t linux-resources-monitoring-service .
+	docker build -t monitor-app .
 
 # Run the collector Docker image
 # (Assumes InfluxDB/Grafana are running via docker-compose)
 docker-run:
-	docker run --rm linux-resources-monitoring-service
+	docker run --rm monitor-app
 
 # Start InfluxDB and Grafana via docker-compose
 docker-compose-up:

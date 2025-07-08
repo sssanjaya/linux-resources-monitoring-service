@@ -1,4 +1,4 @@
-# Deployment: Systemd, Docker & Kubernetes
+# Deployment: Systemd & Docker
 
 ## Systemd Service (Production)
 
@@ -79,92 +79,7 @@ services:
       - PYTHONUNBUFFERED=1
 ```
 
-## Kubernetes Deployment
 
-### API Server Deployment
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: monitoring-api
-spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: monitoring-api
-  template:
-    metadata:
-      labels:
-        app: monitoring-api
-    spec:
-      containers:
-      - name: api
-        image: monitor-app:latest
-        ports:
-        - containerPort: 8000
-        command: ["python", "-m", "monitor_service.cloud_ingestion"]
-        livenessProbe:
-          httpGet:
-            path: /health/live
-            port: 8000
-          initialDelaySeconds: 30
-          periodSeconds: 10
-          timeoutSeconds: 5
-          failureThreshold: 3
-        readinessProbe:
-          httpGet:
-            path: /health/ready
-            port: 8000
-          initialDelaySeconds: 5
-          periodSeconds: 5
-          timeoutSeconds: 3
-          failureThreshold: 3
-        resources:
-          requests:
-            memory: "128Mi"
-            cpu: "100m"
-          limits:
-            memory: "256Mi"
-            cpu: "200m"
-```
-
-### Service Configuration
-```yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: monitoring-api-service
-spec:
-  selector:
-    app: monitoring-api
-  ports:
-  - protocol: TCP
-    port: 80
-    targetPort: 8000
-  type: LoadBalancer
-```
-
-### Ingress Configuration (Optional)
-```yaml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: monitoring-api-ingress
-  annotations:
-    nginx.ingress.kubernetes.io/health-check-path: /health
-spec:
-  rules:
-  - host: monitoring-api.example.com
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: monitoring-api-service
-            port:
-              number: 80
-```
 
 ## Cloud Ingestion Endpoint (Docker)
 

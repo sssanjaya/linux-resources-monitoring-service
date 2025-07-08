@@ -8,7 +8,7 @@ A production-ready Python service for monitoring Linux system resources (CPU, me
 - **Configurable Collection**: Adjustable intervals and alert thresholds
 - **Structured JSON Logging**: Easy troubleshooting and log aggregation
 - **Robust Error Handling**: Retries and graceful failure handling
-- **Production Ready**: Systemd, Docker, and Kubernetes deployment support
+- **Production Ready**: Systemd and Docker deployment support
 - **InfluxDB Integration**: Time-series data storage for metrics
 - **Grafana Dashboard**: Ready-to-use visualization templates
 
@@ -92,7 +92,7 @@ python -m monitor_service.cloud_ingestion
 The API provides comprehensive health check endpoints for production monitoring:
 
 - **`GET /health`** - Basic health status
-- **`GET /health/ready`** - Readiness check (for Kubernetes)
+- **`GET /health/ready`** - Readiness check (for container orchestration)
 - **`GET /health/live`** - Liveness check (for load balancers)
 - **`GET /health/detailed`** - Comprehensive system health with metrics
 
