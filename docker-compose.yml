@@ -1,6 +1,10 @@
+version: '3.8'
+
 services:
+  # InfluxDB time-series database
   influxdb:
     image: influxdb:2.7
+    container_name: monitoring-influxdb
     ports:
       - "8086:8086"
     environment:
@@ -12,16 +16,39 @@ services:
       - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=demo-token
     volumes:
       - influxdb-data:/var/lib/influxdb2
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8086/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Grafana visualization dashboard
   grafana:
     image: grafana/grafana:10.0.3
+    container_name: monitoring-grafana
     ports:
       - "3000:3000"
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
     depends_on:
-      - influxdb
+      influxdb:
+        condition: service_healthy
     volumes:
       - grafana-data:/var/lib/grafana
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+# Persistent volumes
 volumes:
   influxdb-data:
+    driver: local
   grafana-data:
+    driver: local

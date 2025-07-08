@@ -82,3 +82,7 @@ version_files = [
     "pyproject.toml:version",
     "monitor_service/__init__.py:__version__",
 ]
+
+[tool.flake8]
+max-line-length = 88
+extend-ignore = ["E203", "W503"]

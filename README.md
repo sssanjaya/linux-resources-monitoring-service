@@ -19,6 +19,8 @@ A production-ready Python service for monitoring Linux system resources (CPU, me
 - Linux OS (for system metrics)
 - Docker & Docker Compose (for InfluxDB/Grafana)
 
+**Note**: The project uses a minimal set of dependencies for better maintainability and security.
+
 ### Installation
 ```bash
 # Clone the repository

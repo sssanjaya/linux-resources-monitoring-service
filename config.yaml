@@ -1,17 +1,23 @@
+# Linux Resources Monitoring Service Configuration
+
+# Metrics collection settings
 metrics:
-  interval: 10  # seconds
+  interval: 10  # Collection interval in seconds
 
+# Cloud ingestion settings
 cloud:
-  endpoint: "http://localhost:8000/api/metrics"
-  api_key: "dev-local-key"
+  endpoint: "http://localhost:8000/api/metrics"  # API endpoint for metrics
+  api_key: "dev-local-key"  # API key for authentication
 
+# Alerting thresholds (percentages)
 alerting:
-  cpu_threshold: 90      # percent
-  memory_threshold: 80   # percent
-  disk_threshold: 80     # percent
+  cpu_threshold: 90      # CPU usage threshold
+  memory_threshold: 80   # Memory usage threshold
+  disk_threshold: 80     # Disk usage threshold
 
+# InfluxDB time-series database settings
 influxdb:
-  url: "http://localhost:8086"
-  token: "demo-token"
-  org: "demo-org"
-  bucket: "metrics"
+  url: "http://localhost:8086"  # InfluxDB server URL
+  token: "demo-token"           # Authentication token
+  org: "demo-org"              # Organization name
+  bucket: "metrics"            # Bucket name for storing metrics

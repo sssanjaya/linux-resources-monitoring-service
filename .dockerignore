@@ -1,12 +1,82 @@
+# Python
 __pycache__/
-*.pyc
-.venv/
+*.py[cod]
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
 venv/
+.venv/
 env/
 ENV/
-.env
-.git
+
+# Testing
+.pytest_cache/
+.coverage
+.coverage.*
+.cache
+htmlcov/
+.tox/
+.nox/
+
+# IDE/Editor
+.vscode/
 .idea/
+*.swp
+*.swo
+*~
+
+# OS
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Development
+.pre-commit-config.yaml
+pyproject.toml
+setup.py
+Makefile
+
+# Logs
+*.log
+logs/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Project specific
 deployment/
 deploy/
+config/config.yaml
+.cursorignore
+.cursorindexingignore
