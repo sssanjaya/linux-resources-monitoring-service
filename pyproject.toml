@@ -69,6 +69,10 @@ markers = [
     "integration: marks tests as integration tests",
     "unit: marks tests as unit tests",
 ]
+filterwarnings = [
+    "ignore::DeprecationWarning:reactivex.*",
+    "ignore::PendingDeprecationWarning:reactivex.*",
+]
 
 [tool.commitizen]
 name = "cz_conventional_commits"
@@ -78,3 +82,7 @@ version_files = [
     "pyproject.toml:version",
     "monitor_service/__init__.py:__version__",
 ]
+
+[tool.flake8]
+max-line-length = 88
+extend-ignore = ["E203", "W503"]

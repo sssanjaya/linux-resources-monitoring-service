@@ -11,6 +11,3 @@ Version: 1.0.0
 __version__ = "1.0.0"
 __author__ = "SRE Team"
 __description__ = "Linux system monitoring service"
-
-# Package initialization
-print(f"Loading {__description__} v{__version__}...")

@@ -11,6 +11,15 @@
   pip install -r requirements.txt
   ```
 
+## Local Development
+
+To simplify local development, a `dev` command is provided in the `Makefile`. This command will start all the necessary services in the correct order.
+
+```bash
+# Start the entire local development environment
+make dev
+```
+
 ## Code Quality
 - Run all pre-commit hooks:
   ```bash
