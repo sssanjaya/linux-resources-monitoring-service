@@ -17,10 +17,6 @@ run:
 test:
 	venv/bin/python -m pytest tests/
 
-# Run health check tests specifically
-test-health:
-	venv/bin/python -m pytest tests/cloud_ingestion_test.py::test_health_check tests/cloud_ingestion_test.py::test_readiness_check tests/cloud_ingestion_test.py::test_liveness_check tests/cloud_ingestion_test.py::test_detailed_health_check -v
-
 # Lint code
 lint:
 	venv/bin/flake8 monitor_service/
@@ -59,14 +55,6 @@ grafana-import:
 # Run the FastAPI ingestion server
 fastapi-server:
 	venv/bin/uvicorn monitor_service.cloud_ingestion:app --host 0.0.0.0 --port 8080
-
-# Test health endpoints (requires server running)
-test-health-endpoints:
-	@echo "Testing health endpoints..."
-	@curl -s http://localhost:8000/health | jq . || echo "Health endpoint test failed"
-	@curl -s http://localhost:8000/health/ready | jq . || echo "Readiness endpoint test failed"
-	@curl -s http://localhost:8000/health/live | jq . || echo "Liveness endpoint test failed"
-	@curl -s http://localhost:8000/health/detailed | jq . || echo "Detailed health endpoint test failed"
 
 # Clean up build/test artifacts
 clean:
