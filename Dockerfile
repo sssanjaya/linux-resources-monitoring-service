@@ -20,15 +20,12 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 
 # Install Python dependencies
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy configuration file
-COPY config.yaml .
+COPY . .
 
 # Copy application code
-COPY monitor_service/ ./monitor_service/
-
 # Change ownership to non-root user
 RUN chown -R appuser:appuser /app
 
@@ -40,7 +37,7 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
 # Default command (metric collector)
-CMD ["python", "-m", "monitor_service.metric_collector"]
+CMD ["python", "-m", "monitor_service.cloud_ingestion"]
 
 # To run the API server:
 # docker run --rm -p 8000:8000 monitor-app python -m monitor_service.cloud_ingestion

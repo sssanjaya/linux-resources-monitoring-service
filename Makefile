@@ -42,15 +42,6 @@ docker-compose-up:
 docker-compose-down:
 	docker-compose down
 
-# Import Grafana dashboard (requires Grafana running and API key)
-# Usage: make grafana-import GRAFANA_URL=... API_KEY=...
-grafana-import:
-	@echo "Importing Grafana dashboard..."
-	@curl -X POST \
-	  -H "Content-Type: application/json" \
-	  -H "Authorization: Bearer $(API_KEY)" \
-	  -d @docs/grafana_dashboard.json \
-	  $(GRAFANA_URL)/api/dashboards/db || echo "See docs/DEPLOYMENT.md for manual import instructions."
 
 # Run the FastAPI ingestion server
 fastapi-server:

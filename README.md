@@ -146,6 +146,19 @@ make fastapi-server
 # In another terminal, test endpoints
 curl http://localhost:8000/health
 curl http://localhost:8000/health/detailed
+
+# Correct example for /api/metrics (replace values as needed)
+curl -X POST "http://localhost:8000/api/metrics" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "timestamp": "2024-07-09T10:00:00Z",
+    "hostname": "my-host",
+    "metrics": {
+      "cpu": {"usage": 12.5},
+      "memory": {"total": 8192, "used": 4096, "free": 4096},
+      "disk": {"/": {"total": 100000, "used": 50000, "free": 50000}}
+    }
+  }'
 ```
 
 ## Visualization with InfluxDB & Grafana
@@ -280,6 +293,47 @@ alerting:
 1. Edit `config.yaml` to set thresholds and enable desired channels.
 2. Provide valid credentials for email/Slack if enabled.
 3. Run the service as usual. Alerts will be triggered automatically when thresholds are exceeded.
+
+## Secret Management
+
+All secrets and sensitive configuration (API keys, tokens, SMTP credentials, Slack webhook, etc.) should be set in one of two ways:
+
+1. **config.yaml**: Directly in the config file (for local/dev or simple deployments).
+2. **Environment Variables**: Set by your process manager, systemd unit, or Docker Compose (recommended for production).
+
+- For Docker Compose, use the `environment:` section in `docker-compose.yml` to inject secrets.
+- For systemd, use the `Environment=` directive in your service file or `/etc/environment`.
+- **Do not use .env or Doppler for secret management in this version.**
+- Never commit real secrets to git.
+
+### Example (Docker Compose)
+```yaml
+services:
+  monitor:
+    build: .
+    environment:
+      - CLOUD_ENDPOINT=http://localhost:8080/api/metrics
+      - CLOUD_API_KEY=your-api-key
+      - INFLUXDB_URL=http://localhost:8086
+      - INFLUXDB_TOKEN=your-influxdb-token
+      - INFLUXDB_ORG=your-org
+      - INFLUXDB_BUCKET=metrics
+      - SMTP_SERVER=smtp.example.com
+      - SMTP_PORT=587
+      - USERNAME=your_email@example.com
+      - PASSWORD=your_email_password
+      - TO=recipient@example.com
+      - SLACK_WEBHOOK_URL=https://hooks.slack.com/services/XXX/YYY/ZZZ
+```
+
+### Example (systemd)
+Add to your service file:
+```
+[Service]
+Environment="CLOUD_ENDPOINT=http://localhost:8080/api/metrics"
+Environment="CLOUD_API_KEY=your-api-key"
+# ...and so on for all secrets
+```
 
 ## Development
 
