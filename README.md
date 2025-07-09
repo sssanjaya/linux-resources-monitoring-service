@@ -1,2 +1,395 @@
-# linux-resources-monitoring-service
-Building a Linux Resource-Monitoring Service in Python
+# Linux Resources Monitoring Service
+
+A production-ready Python service for monitoring Linux system resources (CPU, memory, disk) with comprehensive health checks, structured logging, and easy deployment options.
+
+## Features
+- **System Metrics Collection**: CPU, memory, and disk usage monitoring
+- **Health Check Endpoints**: Comprehensive API health monitoring for production deployment
+- **Configurable Collection**: Adjustable intervals and alert thresholds
+- **Structured JSON Logging**: Easy troubleshooting and log aggregation
+- **Robust Error Handling**: Retries and graceful failure handling
+- **Production Ready**: Systemd and Docker deployment support
+- **InfluxDB Integration**: Time-series data storage for metrics
+- **Grafana Dashboard**: Ready-to-use visualization templates
+
+## Quick Start
+
+### Prerequisites
+- Python 3.8+
+- Linux OS (for system metrics)
+- Docker & Docker Compose (for InfluxDB/Grafana)
+
+**Note**: The project uses a minimal set of dependencies for better maintainability and security.
+
+### Installation
+```bash
+# Clone the repository
+git clone <repository-url>
+cd linux-resources-monitoring-service
+
+# Create and activate a virtual environment
+make venv
+source venv/bin/activate
+
+# Install dependencies
+make install
+```
+
+### Configuration
+Edit `config.yaml` to set:
+- Metrics collection interval (seconds)
+- Cloud endpoint & API key
+- Alert thresholds for CPU, memory, and disk
+- InfluxDB connection details
+
+Example:
+```yaml
+metrics:
+  interval: 10
+cloud:
+  endpoint: "http://localhost:8000/api/metrics"
+  api_key: "dev-local-key"
+alerting:
+  cpu_threshold: 90
+  memory_threshold: 80
+  disk_threshold: 80
+influxdb:
+  url: "http://localhost:8086"
+  token: "your-influxdb-token"
+  org: "your-org"
+  bucket: "metrics"
+```
+
+### Local Development
+
+To simplify local development, a `dev` command is provided in the `Makefile`. This command will start all the necessary services in the correct order.
+
+```bash
+# Start the entire local development environment
+make dev
+```
+
+### Running the Service
+
+#### Using Makefile (Recommended)
+```bash
+# Start InfluxDB and Grafana
+make docker-compose-up
+
+# Run the metric collector
+make run
+
+# Start the API server
+make fastapi-server
+```
+
+#### Manual Commands
+```bash
+# Print metrics once
+python -m monitor_service.metric_collector
+
+# Run periodic monitoring
+python -m monitor_service.metric_collector
+
+# Start the API server
+python -m monitor_service.cloud_ingestion
+```
+
+## API Endpoints
+
+### Health Checks
+The API provides comprehensive health check endpoints for production monitoring:
+
+- **`GET /health`** - Basic health status
+- **`GET /health/ready`** - Readiness check (for container orchestration)
+- **`GET /health/live`** - Liveness check (for load balancers)
+- **`GET /health/detailed`** - Comprehensive system health with metrics
+
+### Metrics Ingestion
+- **`POST /api/metrics`** - Receive system metrics from collectors
+
+### API Information
+- **`GET /`** - API overview and available endpoints
+- **`GET /docs`** - Interactive API documentation (Swagger UI)
+
+### Example Health Check Response
+```json
+{
+  "status": "healthy",
+  "timestamp": "2024-01-15T10:30:00Z",
+  "version": "1.0.0",
+  "uptime": 3600.5
+}
+```
+
+## Testing
+
+### Run All Tests
+```bash
+make test
+```
+
+### Test Health Endpoints
+```bash
+# Run health check tests
+make test-health
+
+# Test health endpoints manually (requires server running)
+make test-health-endpoints
+```
+
+### Test API Endpoints
+```bash
+# Start the server
+make fastapi-server
+
+# In another terminal, test endpoints
+curl http://localhost:8000/health
+curl http://localhost:8000/health/detailed
+
+# Correct example for /api/metrics (replace values as needed)
+curl -X POST "http://localhost:8000/api/metrics" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "timestamp": "2024-07-09T10:00:00Z",
+    "hostname": "my-host",
+    "metrics": {
+      "cpu": {"usage": 12.5},
+      "memory": {"total": 8192, "used": 4096, "free": 4096},
+      "disk": {"/": {"total": 100000, "used": 50000, "free": 50000}}
+    }
+  }'
+```
+
+## Visualization with InfluxDB & Grafana
+
+### Start the Stack
+```bash
+# Start InfluxDB and Grafana
+make docker-compose-up
+
+# Access Grafana at http://localhost:3000
+# Username: admin, Password: admin
+```
+
+### Import Dashboard
+1. Go to Grafana → Dashboards → Import
+2. Upload `grafana/provisioning/dashboards/linux-metrics-dashboard.json`
+3. Select InfluxDB as data source
+4. View your metrics!
+
+### Dashboard Panel Overview
+
+![Demo of Linux Resources Monitoring Dashboard](docs/grafana.png)
+
+| Panel Name                        | Description                                 |
+|-----------------------------------|---------------------------------------------|
+| Overall CPU Usage (%)             | Shows total CPU usage as a gauge            |
+| CPU Core Usage (%)                | Bar gauge for each CPU core's usage         |
+| Memory Usage (GB)                 | Time series of used/free memory in GB       |
+| Memory Usage (%)                  | Gauge for overall memory usage percent      |
+| Disk Usage by Filesystem (GB, %)  | Bar gauge for disk usage per mount (GB, %). **Note:** Excludes `/boot` and `/boot/efi` filesystems. Only shows total, used, free, and percent used for each remaining filesystem. All size numbers are shown with 'GB' for clarity. |
+
+> **Note:** Panel names, units, and filtering have been updated for clarity and readability. Disk usage metrics are now more human-friendly and exclude system partitions not relevant for most monitoring scenarios.
+
+### Grafana Dashboard Queries
+
+Here are the Flux queries for a comprehensive Grafana dashboard.
+
+**1. CPU Utilization (Overall and Per-Core)**
+
+*   **Panel Type**: Time series
+*   **Panel Title**: CPU Utilization
+
+```flux
+from(bucket: "metrics")
+  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
+  |> filter(fn: (r) => r._measurement == "cpu")
+  |> filter(fn: (r) => r._field =~ /^cpu_usage$|^core_/)
+  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)
+  |> yield(name: "mean")
+```
+
+**2. Memory Usage (Percentage)**
+
+*   **Panel Type**: Time series
+*   **Panel Title**: Memory Usage (%)
+
+```flux
+from(bucket: "metrics")
+  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
+  |> filter(fn: (r) => r._measurement == "memory")
+  |> filter(fn: (r) => r._field == "percent")
+  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)
+  |> yield(name: "mean")
+```
+
+**3. Memory Usage (Stats)**
+
+*   **Panel Type**: Stat
+*   **Panel Title**: Memory Usage
+
+```flux
+from(bucket: "metrics")
+  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
+  |> filter(fn: (r) => r._measurement == "memory")
+  |> filter(fn: (r) => r._field == "total_gb" or r._field == "used_gb" or r._field == "free_gb")
+  |> last()
+```
+
+**4. Disk Usage (Table)**
+
+*   **Panel Type**: Table
+*   **Panel Title**: Disk Usage
+
+```flux
+from(bucket: "metrics")
+  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
+  |> filter(fn: (r) => r._measurement == "disk")
+  |> filter(fn: (r) =>
+    r._field == "total_gb" or
+    r._field == "used_gb" or
+    r._field == "free_gb" or
+    r._field == "percent"
+  )
+  |> last()
+  |> pivot(rowKey:["mount", "host"], columnKey: ["_field"], valueColumn: "_value")
+  |> keep(columns: ["mount", "total_gb", "used_gb", "free_gb", "percent"])
+```
+
+## Alerting
+
+The monitoring service supports threshold-based alerting for CPU, memory, and disk usage. Alerts can be sent via email, Slack, and logs, with a configurable cooldown window to avoid duplicate alerts.
+
+### Configuration Example
+```yaml
+alerting:
+  cpu_threshold: 90      # CPU usage threshold (%)
+  memory_threshold: 80   # Memory usage threshold (%)
+  disk_threshold: 80     # Disk usage threshold (%)
+  cooldown_seconds: 600  # Cooldown window in seconds between alerts for the same metric
+  email:
+    enabled: false                # Enable email alerts
+    to: "admin@example.com"        # Recipient email address
+    smtp_server: "smtp.example.com" # SMTP server address
+    smtp_port: 587                # SMTP server port
+    username: "user"              # SMTP username
+    password: "pass"              # SMTP password (consider using env var in prod)
+  slack:
+    enabled: false                # Enable Slack alerts
+    webhook_url: "https://hooks.slack.com/services/XXX/YYY/ZZZ" # Slack webhook URL
+```
+
+### How It Works
+- Thresholds are checked after each metric collection.
+- If a metric exceeds its threshold and the cooldown window has passed, an alert is triggered.
+- Alerts can be sent to:
+  - **Email** (via SMTP)
+  - **Slack** (via webhook)
+  - **Logs** (always enabled)
+- Cooldown prevents duplicate alerts for the same metric within the specified window.
+
+### Enabling Alerts
+1. Edit `config.yaml` to set thresholds and enable desired channels.
+2. Provide valid credentials for email/Slack if enabled.
+3. Run the service as usual. Alerts will be triggered automatically when thresholds are exceeded.
+
+## Secret Management
+
+All secrets and sensitive configuration (API keys, tokens, SMTP credentials, Slack webhook, etc.) should be set in one of two ways:
+
+1. **config.yaml**: Directly in the config file (for local/dev or simple deployments).
+2. **Environment Variables**: Set by your process manager, systemd unit, or Docker Compose (recommended for production).
+
+- For Docker Compose, use the `environment:` section in `docker-compose.yml` to inject secrets.
+- For systemd, use the `Environment=` directive in your service file or `/etc/environment`.
+- **Do not use .env or Doppler for secret management in this version.**
+- Never commit real secrets to git.
+
+### Example (Docker Compose)
+```yaml
+services:
+  monitor:
+    build: .
+    environment:
+      - CLOUD_ENDPOINT=http://localhost:8080/api/metrics
+      - CLOUD_API_KEY=your-api-key
+      - INFLUXDB_URL=http://localhost:8086
+      - INFLUXDB_TOKEN=your-influxdb-token
+      - INFLUXDB_ORG=your-org
+      - INFLUXDB_BUCKET=metrics
+      - SMTP_SERVER=smtp.example.com
+      - SMTP_PORT=587
+      - USERNAME=your_email@example.com
+      - PASSWORD=your_email_password
+      - TO=recipient@example.com
+      - SLACK_WEBHOOK_URL=https://hooks.slack.com/services/XXX/YYY/ZZZ
+```
+
+### Example (systemd)
+Add to your service file:
+```
+[Service]
+Environment="CLOUD_ENDPOINT=http://localhost:8080/api/metrics"
+Environment="CLOUD_API_KEY=your-api-key"
+# ...and so on for all secrets
+```
+
+## Development
+
+### Code Quality
+```bash
+# Format code
+make format
+
+# Lint code
+make lint
+
+# Run tests
+make test
+```
+
+### Docker Development
+```bash
+# Build image
+make docker-build
+
+# Run container
+make docker-run
+```
+
+## Available Makefile Targets
+
+```bash
+make dev                     # Run all services for local development
+make help                    # Show all available targets
+make venv                    # Create virtual environment
+make install                 # Install dependencies
+make run                     # Run metric collector
+make fastapi-server          # Start API server
+make test                    # Run all tests
+make test-health             # Run health check tests
+make test-health-endpoints   # Test health endpoints manually
+make docker-compose-up       # Start InfluxDB/Grafana
+make docker-compose-down     # Stop InfluxDB/Grafana
+make docker-build            # Build Docker image
+make docker-run              # Run Docker container
+make clean                   # Clean build artifacts
+```
+
+## Code Refinements
+
+- **Refactored for Clarity**: The codebase has been refactored to improve readability and maintainability. High-complexity functions and tests have been broken down into smaller, more manageable pieces.
+- **Improved Testability**: The tests have been refactored to be more focused and easier to debug.
+- **Simplified Local Development**: A `make dev` command has been added to simplify the process of starting the local development environment.
+
+## More Documentation
+- [Systemd & Docker Deployment](docs/DEPLOYMENT.md)
+- [Configuration Details](docs/CONFIG.md)
+- [Development & Testing](docs/DEVELOPMENT.md)
+- [Reliability & Observability](docs/RELIABILITY.md)
+- [API Documentation](docs/API.md)
+
+---
+
+For advanced usage, troubleshooting, and contribution guidelines, see the [docs/](docs/) folder.

@@ -1,0 +1,34 @@
+# Linux Resources Monitoring Service Configuration
+
+# Metrics collection settings
+metrics:
+  interval: 10  # Collection interval in seconds
+
+# Cloud ingestion settings
+cloud:
+  endpoint: "http://localhost:8080/api/metrics"  # API endpoint for metrics
+  api_key: "dev-local-key"  # API key for authentication
+
+# Alerting thresholds (percentages)
+alerting:
+  cpu_threshold: 90      # CPU usage threshold (%)
+  memory_threshold: 80   # Memory usage threshold (%)
+  disk_threshold: 80     # Disk usage threshold (%)
+  cooldown_seconds: 600  # Cooldown window in seconds between alerts for the same metric
+  email:
+    enabled: false                # Enable email alerts
+    to: "admin@example.com"        # Recipient email address
+    smtp_server: "smtp.example.com" # SMTP server address
+    smtp_port: 587                # SMTP server port
+    username: "user"              # SMTP username
+    password: "pass"              # SMTP password (consider using env var in prod)
+  slack:
+    enabled: true                # Enable Slack alerts
+    webhook_url: "https://hooks.slack.com/services/xxx/yyy/zzz" # Slack webhook URL
+
+# InfluxDB time-series database settings
+influxdb:
+  url: "http://localhost:8086"  # InfluxDB server URL
+  token: "demo-token"           # Authentication token
+  org: "demo-org"              # Organization name
+  bucket: "metrics"            # Bucket name for storing metrics

@@ -24,8 +24,6 @@ venv/
 .venv/
 env/
 ENV/
-env.bak/
-venv.bak/
 
 # Testing
 .pytest_cache/
@@ -51,6 +49,21 @@ htmlcov/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Development
+.pre-commit-config.yaml
+pyproject.toml
+setup.py
+Makefile
 
 # Logs
 *.log
