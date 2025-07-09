@@ -206,11 +206,8 @@ class MetricCollector:
         memory = self.collect_memory_metrics()
         disk = self.collect_disk_metrics()
         metrics = {
-            "cpu": cpu["cpu_usage"],
-            "memory": memory["percent"],
-            "disk_max_percent": max((d["percent"] for d in disk.values()), default=0),
-            "cpu_details": cpu,
-            "memory_details": memory,
+            "cpu": cpu,
+            "memory": memory,
             "disk": disk,
         }
         # Alerting: check thresholds and trigger alerts if needed
