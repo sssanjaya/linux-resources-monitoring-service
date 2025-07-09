@@ -11,9 +11,20 @@ cloud:
 
 # Alerting thresholds (percentages)
 alerting:
-  cpu_threshold: 90      # CPU usage threshold
-  memory_threshold: 80   # Memory usage threshold
-  disk_threshold: 80     # Disk usage threshold
+  cpu_threshold: 90      # CPU usage threshold (%)
+  memory_threshold: 80   # Memory usage threshold (%)
+  disk_threshold: 80     # Disk usage threshold (%)
+  cooldown_seconds: 600  # Cooldown window in seconds between alerts for the same metric
+  email:
+    enabled: false                # Enable email alerts
+    to: "admin@example.com"        # Recipient email address
+    smtp_server: "smtp.example.com" # SMTP server address
+    smtp_port: 587                # SMTP server port
+    username: "user"              # SMTP username
+    password: "pass"              # SMTP password (consider using env var in prod)
+  slack:
+    enabled: false                # Enable Slack alerts
+    webhook_url: "https://hooks.slack.com/services/XXX/YYY/ZZZ" # Slack webhook URL
 
 # InfluxDB time-series database settings
 influxdb:

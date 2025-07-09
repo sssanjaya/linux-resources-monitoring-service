@@ -17,6 +17,7 @@ import requests
 from influxdb_client import InfluxDBClient, Point
 from influxdb_client.client.write_api import SYNCHRONOUS
 
+from monitor_service import alerts  # Import alerting module
 from monitor_service.utils import load_config
 
 
@@ -197,24 +198,29 @@ class MetricCollector:
 
     def _collect_and_send_metrics(self):
         """
-        Collect all metrics and send them to the configured endpoints.
+        Collect all metrics, send them to the configured endpoints,
+        and check for alert thresholds.
         """
         cpu = self.collect_cpu_metrics()
         memory = self.collect_memory_metrics()
         disk = self.collect_disk_metrics()
-        self.logger.info(
-            {
-                "event": "metrics_collected",
-                "cpu": cpu,
-                "memory": memory,
-                "disk": disk,
-            }
-        )
         metrics = {
-            "cpu": cpu,
-            "memory": memory,
+            "cpu": cpu["cpu_usage"],
+            "memory": memory["percent"],
+            "disk_max_percent": max((d["percent"] for d in disk.values()), default=0),
+            "cpu_details": cpu,
+            "memory_details": memory,
             "disk": disk,
         }
+        # Alerting: check thresholds and trigger alerts if needed
+        alerts.check_thresholds(
+            {
+                "cpu": cpu["cpu_usage"],
+                "memory": memory["percent"],
+                "disk": max((d["percent"] for d in disk.values()), default=0),
+            },
+            self.config,
+        )
         self.send_metrics(metrics)
         self.write_metrics_influxdb(metrics)
 

@@ -161,9 +161,23 @@ make docker-compose-up
 
 ### Import Dashboard
 1. Go to Grafana → Dashboards → Import
-2. Upload `docs/grafana_dashboard.json`
+2. Upload `grafana/provisioning/dashboards/linux-metrics-dashboard.json`
 3. Select InfluxDB as data source
 4. View your metrics!
+
+### Dashboard Panel Overview
+
+![Demo of Linux Resources Monitoring Dashboard](docs/grafana.png)
+
+| Panel Name                        | Description                                 |
+|-----------------------------------|---------------------------------------------|
+| Overall CPU Usage (%)             | Shows total CPU usage as a gauge            |
+| CPU Core Usage (%)                | Bar gauge for each CPU core's usage         |
+| Memory Usage (GB)                 | Time series of used/free memory in GB       |
+| Memory Usage (%)                  | Gauge for overall memory usage percent      |
+| Disk Usage by Filesystem (GB, %)  | Bar gauge for disk usage per mount (GB, %). **Note:** Excludes `/boot` and `/boot/efi` filesystems. Only shows total, used, free, and percent used for each remaining filesystem. All size numbers are shown with 'GB' for clarity. |
+
+> **Note:** Panel names, units, and filtering have been updated for clarity and readability. Disk usage metrics are now more human-friendly and exclude system partitions not relevant for most monitoring scenarios.
 
 ### Grafana Dashboard Queries
 
@@ -229,6 +243,43 @@ from(bucket: "metrics")
   |> pivot(rowKey:["mount", "host"], columnKey: ["_field"], valueColumn: "_value")
   |> keep(columns: ["mount", "total_gb", "used_gb", "free_gb", "percent"])
 ```
+
+## Alerting
+
+The monitoring service supports threshold-based alerting for CPU, memory, and disk usage. Alerts can be sent via email, Slack, and logs, with a configurable cooldown window to avoid duplicate alerts.
+
+### Configuration Example
+```yaml
+alerting:
+  cpu_threshold: 90      # CPU usage threshold (%)
+  memory_threshold: 80   # Memory usage threshold (%)
+  disk_threshold: 80     # Disk usage threshold (%)
+  cooldown_seconds: 600  # Cooldown window in seconds between alerts for the same metric
+  email:
+    enabled: false                # Enable email alerts
+    to: "admin@example.com"        # Recipient email address
+    smtp_server: "smtp.example.com" # SMTP server address
+    smtp_port: 587                # SMTP server port
+    username: "user"              # SMTP username
+    password: "pass"              # SMTP password (consider using env var in prod)
+  slack:
+    enabled: false                # Enable Slack alerts
+    webhook_url: "https://hooks.slack.com/services/XXX/YYY/ZZZ" # Slack webhook URL
+```
+
+### How It Works
+- Thresholds are checked after each metric collection.
+- If a metric exceeds its threshold and the cooldown window has passed, an alert is triggered.
+- Alerts can be sent to:
+  - **Email** (via SMTP)
+  - **Slack** (via webhook)
+  - **Logs** (always enabled)
+- Cooldown prevents duplicate alerts for the same metric within the specified window.
+
+### Enabling Alerts
+1. Edit `config.yaml` to set thresholds and enable desired channels.
+2. Provide valid credentials for email/Slack if enabled.
+3. Run the service as usual. Alerts will be triggered automatically when thresholds are exceeded.
 
 ## Development
 
