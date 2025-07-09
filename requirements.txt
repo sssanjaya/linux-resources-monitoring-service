@@ -6,6 +6,7 @@ commitizen>=3.13.0
 # FastAPI and web framework
 fastapi>=0.116.0
 flake8>=7.0.0
+httpx>=0.24.0
 
 # InfluxDB integration
 influxdb-client>=1.49.0

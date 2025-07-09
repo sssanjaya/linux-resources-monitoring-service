@@ -23,8 +23,8 @@ alerting:
     username: "user"              # SMTP username
     password: "pass"              # SMTP password (consider using env var in prod)
   slack:
-    enabled: false                # Enable Slack alerts
-    webhook_url: "https://hooks.slack.com/services/XXX/YYY/ZZZ" # Slack webhook URL
+    enabled: true                # Enable Slack alerts
+    webhook_url: "https://hooks.slack.com/services/xxx/yyy/zzz" # Slack webhook URL
 
 # InfluxDB time-series database settings
 influxdb:

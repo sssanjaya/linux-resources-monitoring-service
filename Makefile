@@ -1,4 +1,4 @@
-.PHONY: venv install run test test-health test-health-endpoints lint format docker-build docker-run clean docker-compose-up docker-compose-down grafana-import fastapi-server help dev
+.PHONY: venv install run test test-health test-health-endpoints lint format docker-build docker-run clean docker-compose-up docker-compose-down grafana-import fastapi-server help dev stop
 
 # Create Python virtual environment
 venv:
@@ -60,14 +60,16 @@ fastapi-server:
 clean:
 	rm -rf venv .pytest_cache __pycache__ monitor_service/__pycache__ tests/__pycache__ *.pyc *.pyo *.coverage htmlcov
 
-# Show help for all targets
-help:
-	@echo "Available targets:"
-	@grep -E '^[a-zA-Z_-]+:' Makefile | cut -d: -f1 | sort | uniq | xargs -n1 echo '  -'
-
 # Run all services for local development
 dev:
 	@echo "Starting local development environment..."
 	@make docker-compose-up
 	@make fastapi-server &
 	@make run
+
+# Stop all app services (Docker Compose and local)
+stop:
+	@echo "Stopping all app services..."
+	-docker-compose down
+	-pkill -f monitor_service.cloud_ingestion || true
+	-pkill -f monitor_service.metric_collector || true

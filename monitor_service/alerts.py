@@ -8,6 +8,7 @@ Alerting module for Linux Resources Monitoring Service.
 import logging
 import smtplib
 import time
+from datetime import datetime, timezone
 from email.mime.text import MIMEText
 from typing import Any, Dict
 
@@ -16,25 +17,62 @@ import requests
 _last_alert_times = {}
 
 
-def check_thresholds(metrics: Dict[str, float], config: Dict[str, Any]):
+def check_thresholds(
+    metrics: Dict[str, float], config: Dict[str, Any], context: dict = None
+):
     """
     Check metrics against thresholds and trigger alerts if needed.
     Args:
         metrics: Dict of metric name to value (e.g., {'cpu': 95.0})
         config: Parsed config dict
+        context: Optional dict with extra info (e.g., hostname)
     """
+    import socket
+
     alerting = config.get("alerting", {})
     cooldown = alerting.get("cooldown_seconds", 600)
     now = time.time()
+    hostname = None
+    if context and "hostname" in context:
+        hostname = context["hostname"]
+    else:
+        try:
+            hostname = socket.gethostname()
+        except Exception:
+            hostname = "unknown"
+    # Map metric names to units
+    metric_units = {
+        "cpu": "%",
+        "memory": "%",
+        "disk": "%",
+        "cpu_usage": "%",
+        "memory_usage": "%",
+        "disk_usage": "%",
+        "used_gb": "GB",
+        "free_gb": "GB",
+        "total_gb": "GB",
+    }
     for metric, value in metrics.items():
         threshold = alerting.get(f"{metric}_threshold")
+        unit = metric_units.get(metric, "")
+        value_str = f"{value} {unit}" if unit else str(value)
+        threshold_str = f"{threshold} {unit}" if unit else str(threshold)
         if threshold is not None and value > threshold:
             last_time = _last_alert_times.get(metric, 0)
             if now - last_time > cooldown:
+                timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S %Z")
                 msg = (
-                    f"ALERT: {metric.upper()} is {value}, "
-                    f"exceeds threshold {threshold}!"
+                    f"*🚨 SRE Alert: {metric.upper()} threshold exceeded!*\n"
+                    f"> *Device:* `{hostname}`\n"
+                    f"> *Metric:* `{metric}`\n"
+                    f"> *Value:* `{value_str}`\n"
+                    f"> *Threshold:* `{threshold_str}`\n"
+                    f"> *Time:* `{timestamp}`\n"
                 )
+                if context:
+                    for k, v in context.items():
+                        if k != "hostname":
+                            msg += f"> *{k.capitalize()}:* `{v}`\n"
                 send_alert(msg, alerting)
                 _last_alert_times[metric] = now
 

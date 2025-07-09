@@ -187,9 +187,10 @@ class MetricCollector:
                     if metric_type == "disk":
                         points = self._format_disk_points(values, hostname, ts)
                         write_api.write(bucket=bucket, org=org, record=points)
-                    else:
+                    elif isinstance(values, dict):
                         point = self._format_point(metric_type, values, hostname, ts)
                         write_api.write(bucket=bucket, org=org, record=point)
+                    # else: skip floats like "cpu", "memory", "disk_max_percent"
                 self.logger.info(
                     {"event": "metrics_written_influxdb", "bucket": bucket}
                 )
